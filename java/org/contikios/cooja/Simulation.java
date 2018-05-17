@@ -372,7 +372,7 @@ public class Simulation extends Observable implements Runnable {
     stddev = Math.sqrt(stddev);
     double interval = 1.96*stddev/Math.sqrt(jitters.size());
 
-    System.out.println("CoojaEventJitter\t"+Double.toString(mean)+"\t"+Double.toString(stddev));
+    System.out.println("CoojaEventJitter\t"+Double.toString(mean)+"\t"+Double.toString(interval));
 
 
     if (block) {
