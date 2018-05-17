@@ -36,7 +36,7 @@ import java.util.Observer;
 import java.util.Random;
 import java.util.Vector;
 
-import java.lang.Math
+import java.lang.Math;
 
 import javax.swing.JOptionPane;
 
@@ -62,7 +62,7 @@ public class Simulation extends Observable implements Runnable {
 
   private Vector<Mote> motes = new Vector<Mote>();
   private Vector<Mote> motesUninit = new Vector<Mote>();
-  private ArrayList<long> jitters = new ArrayList<long>();
+  private ArrayList<Long> jitters = new ArrayList<Long>();
   
   private Vector<MoteType> moteTypes = new Vector<MoteType>();
 
@@ -280,11 +280,11 @@ public class Simulation extends Observable implements Runnable {
           throw new RuntimeException("Next event is in the past: " + nextEvent.time + " < " + currentSimulationTime + ": " + nextEvent);
         }
         currentSimulationTime = nextEvent.time;
-        if(!speedLimitNone && speedLimit == 1.0) {
+        if(!speedLimitNone && speedLimit == 1.0 && nextEvent != millisecondEvent && nextEvent != delayEvent) {
           long diffSimtime = (currentSimulationTime - speedLimitLastSimtime)/1000; /* ms */
           long diffRealtime = System.currentTimeMillis() - speedLimitLastRealtime; /* ms */
           long expectedDiffRealtime = (long) (diffSimtime/speedLimit);
-          long jitter = abs(expectedDiffRealtime - diffRealtime);
+          long jitter = Math.abs(expectedDiffRealtime - diffRealtime);
           jitters.add(jitter);
         }
         /*logger.info("Executing event #" + EVENT_COUNTER++ + " @ " + currentSimulationTime + ": " + nextEvent);*/
@@ -361,15 +361,16 @@ public class Simulation extends Observable implements Runnable {
     }
     stopSimulation = true;
 
-    float mean = 0;
-    float stddev = 0;
+    double mean = 0;
+    double stddev = 0;
     for (int i = 0; i < jitters.size(); i++) {
       mean += jitters.get(i)*1.0/jitters.size();
     }
     for (int i = 0; i < jitters.size(); i++) {
-      stddev += pow(jitters.get(i)-mean,2)/(jitters.size()-1);
+      stddev += Math.pow(jitters.get(i)-mean,2)/(jitters.size()-1);
     }
-    stddev = sqrt(stddev);
+    stddev = Math.sqrt(stddev);
+    double interval = 1.96*stddev/Math.sqrt(jitters.size());
 
     System.out.println("CoojaEventJitter\t"+Float.toString(mean)+"\t"+Float.toString(stddev));
 
