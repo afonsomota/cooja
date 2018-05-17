@@ -36,6 +36,8 @@ import java.util.Observer;
 import java.util.Random;
 import java.util.Vector;
 
+import java.lang.Math
+
 import javax.swing.JOptionPane;
 
 import org.apache.log4j.Logger;
@@ -60,6 +62,7 @@ public class Simulation extends Observable implements Runnable {
 
   private Vector<Mote> motes = new Vector<Mote>();
   private Vector<Mote> motesUninit = new Vector<Mote>();
+  private ArrayList<long> jitters = new ArrayList<long>();
   
   private Vector<MoteType> moteTypes = new Vector<MoteType>();
 
@@ -277,6 +280,13 @@ public class Simulation extends Observable implements Runnable {
           throw new RuntimeException("Next event is in the past: " + nextEvent.time + " < " + currentSimulationTime + ": " + nextEvent);
         }
         currentSimulationTime = nextEvent.time;
+        if(!speedLimitNone && speedLimit == 1.0) {
+          long diffSimtime = (currentSimulationTime - speedLimitLastSimtime)/1000; /* ms */
+          long diffRealtime = System.currentTimeMillis() - speedLimitLastRealtime; /* ms */
+          long expectedDiffRealtime = (long) (diffSimtime/speedLimit);
+          long jitter = abs(expectedDiffRealtime - diffRealtime);
+          jitters.add(jitter);
+        }
         /*logger.info("Executing event #" + EVENT_COUNTER++ + " @ " + currentSimulationTime + ": " + nextEvent);*/
         nextEvent.execute(currentSimulationTime);
 
@@ -350,6 +360,19 @@ public class Simulation extends Observable implements Runnable {
       return;
     }
     stopSimulation = true;
+
+    float mean = 0;
+    float stddev = 0;
+    for (int i = 0; i < jitters.size(); i++) {
+      mean += jitters.get(i)*1.0/jitters.size();
+    }
+    for (int i = 0; i < jitters.size(); i++) {
+      stddev += pow(jitters.get(i)-mean,2)/(jitters.size()-1);
+    }
+    stddev = sqrt(stddev);
+
+    System.out.println("CoojaEventJitter\t"+Float.toString(mean)+"\t"+Float.toString(stddev));
+
 
     if (block) {
       if (Thread.currentThread() == simulationThread) {
