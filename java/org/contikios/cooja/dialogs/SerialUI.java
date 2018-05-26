@@ -61,6 +61,7 @@ public abstract class SerialUI extends Log implements SerialPort {
   private static Logger logger = Logger.getLogger(SerialUI.class);
 
   private final static int MAX_LENGTH = 1024;
+  private final static byte SLIP_END = (byte)0300;
 
   private byte lastSerialData = 0; /* SerialPort */
   private String lastLogMessage = ""; /* Log */
@@ -99,7 +100,7 @@ public abstract class SerialUI extends Log implements SerialPort {
     return lastSerialData;
   }
   public void dataReceived(int data) {
-    if (data == '\n') {
+    if (data == '\n' || data == SLIP_END ) {
       /* Notify observers of new log */
       lastLogMessage = newMessage.toString();
       lastLogMessage = lastLogMessage.replaceAll("[^\\p{Print}\\p{Blank}]", "");
